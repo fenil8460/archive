@@ -5,12 +5,12 @@ namespace App\Http\Controllers;
 use App\Jobs\CreateDomain;
 use App\Models\Keyword;
 use App\Models\Task;
+use App\Models\Url;
 use DOMDocument;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
-
+use Illuminate\Support\Facades\Http;
 
 class CheckDomainController extends Controller
 {
@@ -104,6 +104,27 @@ class CheckDomainController extends Controller
         ];
 
         dispatch(new CreateDomain($url));
+
+        return redirect('list-task');
+    }
+
+    public function listTask(Request $request){
+        $task = Url::join('tasks','tasks.id','=','urls.task_id')->select('urls.*','tasks.name')->get();
+        return view('task.list',['tasks'=>$task]);
+    }
+
+    public function getSnapShot(Request $request){
+        $snapshot =  Http::get('http://web.archive.org/cdx/search/cdx?output=json&url='.$request->url);
+        $snapshot = json_decode($snapshot);
+        unset($snapshot[0]);
+        $data = [];
+        foreach($snapshot as $index=>$item){
+            $data[$index] = [
+                'url'=>'http://web.archive.org/web/'.$item[1].'/'.$item[2],
+                'timestamp'=>$item[1]
+            ];
+        }
+        return view('snapshot.list',['snapshots'=>$data]);
     }
 
     public function badKeyword()
@@ -489,5 +510,7 @@ class CheckDomainController extends Controller
             ["keyword" => "warumoshi"],
             ["keyword" => "ãƒ¯ãƒ«ãƒ¢ã"]
         ];
+
+        Keyword::insert($data);
     }
 }

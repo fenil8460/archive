@@ -41,25 +41,27 @@ class CreateDomain implements ShouldQueue
         $url = explode(',', $this->data['url']);
         $task_id = $this->data['task_id'];
         $status = 1;
+        $count = 0;
         if (count($url) >= 0) {
             foreach ($url as $key => $item) {
                 $insert_url = preg_replace('/\s+/', ' ', ltrim($item));
+                $html = $this->file_get_contents_curl($insert_url);
+                foreach ($keywords as $item2) {
+                    if (str_contains($html, $item2->keyword)) {
+                        $count = $count + 1;
+                    }
+                }
+                if ($count > config('app.spam_keyword')) {
+                    $status = 0;
+                }
                 $insert_data = [
                     'url' => $insert_url,
                     'task_id' => $task_id,
                     'status' => $status
                 ];
-                // Url::create($insert_data);
-               
-            $html = $this->file_get_contents_curl($insert_url);
-
-            $doc = new DOMDocument();
-            @$doc->loadHTML($html);
-            dd($doc,'*-*---*-');
-            $metas = $doc->getElementsByTagName('meta');
+                Url::create($insert_data);
             }
         }
-        dd($url);
     }
 
     public function file_get_contents_curl($url)

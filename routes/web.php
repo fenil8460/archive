@@ -15,16 +15,17 @@ use App\Http\Controllers\CheckDomainController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('auth.login');
 });
 
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-Route::middleware(['auth'])->group(function(){
-    Route::get('/task', function(){
+Route::middleware(['auth'])->group(function () {
+    Route::get('/task', function () {
         return view('task.create');
     })->name('task');
     Route::post('/create-task', [CheckDomainController::class, 'createTask'])->name('createTask');
+    Route::get('/list-task', [CheckDomainController::class, 'listTask'])->name('listTask');
+    Route::get('/url-spanshot', [CheckDomainController::class, 'getSnapShot'])->name('snapshot');
 });
-
