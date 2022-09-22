@@ -1,11 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+    a.btn.btn-primary.list-task {
+        float: right;
+    }
+</style>
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header">{{ __('Task') }}</div>
+                <div class="card-header">{{ __('Task') }} <a href="/list-task" class="btn btn-primary list-task">View Task</a></div>
 
                 <div class="card-body">
                     <form method="POST" action="{{ route('createTask') }}">
@@ -37,7 +42,7 @@
                                 </span>
                                 @enderror
                             </div>
-                        </div>  
+                        </div>
 
 
                         <div class="row mb-0">

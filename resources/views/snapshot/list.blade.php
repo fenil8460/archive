@@ -12,14 +12,14 @@
                         <thead>
                             <tr>
                                 <th>Url</th>
-                                <th>TimeStamp</th>
+                                <th>Date</th>
                             <tr>
                         </thead>
                         <tbody>
                         @foreach($snapshots as $snapshot)
                         <tr>
                             <td><a href="{{$snapshot['url']}}" target="_blank">{{$snapshot['url']}}</a></td>
-                            <td>{{$snapshot['timestamp']}}</td>
+                            <td>{{date('Y-m-d H:i:s', strtotime($snapshot['timestamp']))}}</td>
                         <tr>
                             @endforeach
                         </tbody>

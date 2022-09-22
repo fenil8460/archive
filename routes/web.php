@@ -16,7 +16,7 @@ use App\Http\Controllers\CheckDomainController;
 
 Route::get('/', function () {
     return view('auth.login');
-});
+})->name('customLogin');
 
 Auth::routes();
 

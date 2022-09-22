@@ -15,59 +15,6 @@ use Illuminate\Support\Facades\Http;
 class CheckDomainController extends Controller
 {
     //
-    public function index(Request $request)
-    {
-        try {
-            $url = $request->url;
-            $html = $this->file_get_contents_curl($url);
-
-            //parsing begins here:
-            $doc = new DOMDocument();
-            @$doc->loadHTML($html);
-            // $nodes = $doc->getElementsByTagName('title');
-
-            //get and display what you need:
-            // $title = $nodes->item(0)->nodeValue;
-
-            $metas = $doc->getElementsByTagName('meta');
-            $keywords = "";
-            // $description = "";
-
-            for ($i = 0; $i < $metas->length; $i++) {
-                $meta = $metas->item($i);
-                // if ($meta->getAttribute('name') == 'description')
-                //     $description = $meta->getAttribute('content');
-                if ($meta->getAttribute('name') == 'keywords')
-                    $keywords = $meta->getAttribute('content');
-            }
-
-            $data = [];
-            $data_keyword = 0;
-            if ($keywords != "") {
-                $data = explode(',', $keywords);
-            }
-            if (count($data) >= 0) {
-                foreach ($data as $key => $keyword)
-                    $data[$key] = (string)preg_replace('/\s+/', ' ', ltrim($keyword));
-            }
-
-            if (count($data) > 0) {
-                $data_keyword = Keyword::whereIN('keyword', $data)->count();
-            } else {
-                return $this->error('Keyword not found');
-            }
-            $return_data = [
-                'count' => $data_keyword,
-                'keyword' => $data
-            ];
-
-            // return $this->success($return_data);
-            return view('');
-        } catch (Exception $e) {
-
-            return $this->error($e->getMessage());
-        }
-    }
 
     public function file_get_contents_curl($url)
     {
@@ -96,11 +43,24 @@ class CheckDomainController extends Controller
             'user_id' => Auth::user()->id,
         ];
 
+        // create new task
         $create_task = Task::create($data);
+        $url = explode(',', $request->url);
+
+        foreach ($url as $item) {
+            $insert_url = preg_replace('/\s+/', ' ', ltrim($item));
+            $insert_data = [
+                'url' => $insert_url,
+                'task_id' => $create_task->id,
+                'status' => 1
+            ];
+
+            // create new url based on task
+            Url::create($insert_data);
+        }
 
         $url = [
-            'task_id' => $create_task->id,
-            'url' => $request->url,
+            'task_id' => $create_task->id
         ];
 
         dispatch(new CreateDomain($url));
@@ -108,23 +68,41 @@ class CheckDomainController extends Controller
         return redirect('list-task');
     }
 
-    public function listTask(Request $request){
-        $task = Url::join('tasks','tasks.id','=','urls.task_id')->select('urls.*','tasks.name')->get();
-        return view('task.list',['tasks'=>$task]);
+    public function listTask(Request $request)
+    {
+        $task = Url::join('tasks', 'tasks.id', '=', 'urls.task_id')->select('urls.*', 'tasks.name')->where('user_id',Auth::user()->id)->paginate(config('app.pagination_limit'));
+        foreach($task as $key=>$item){
+            $status = '';
+            if($item->status == 1){
+                $status = 'Waiting for proccesing';
+            }
+            if($item->status == 2){
+                $status = 'Underproccess';
+            }
+            if($item->status == 3){
+                $status = 'Spam';
+            }
+            if($item->status == 4){
+                $status = 'Not spam';
+            }
+            $task[$key]['status_name'] = $status;
+        }
+        return view('task.list', ['tasks' => $task]);
     }
 
-    public function getSnapShot(Request $request){
-        $snapshot =  Http::get('http://web.archive.org/cdx/search/cdx?output=json&url='.$request->url);
+    public function getSnapShot(Request $request)
+    {
+        $snapshot =  Http::get('http://web.archive.org/cdx/search/cdx?output=json&url=' . $request->url);
         $snapshot = json_decode($snapshot);
         unset($snapshot[0]);
         $data = [];
-        foreach($snapshot as $index=>$item){
+        foreach ($snapshot as $index => $item) {
             $data[$index] = [
-                'url'=>'http://web.archive.org/web/'.$item[1].'/'.$item[2],
-                'timestamp'=>$item[1]
+                'url' => 'http://web.archive.org/web/' . $item[1] . '/' . $item[2],
+                'timestamp' => $item[1]
             ];
         }
-        return view('snapshot.list',['snapshots'=>$data]);
+        return view('snapshot.list', ['snapshots' => $data]);
     }
 
     public function badKeyword()
