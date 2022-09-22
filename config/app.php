@@ -124,7 +124,7 @@ return [
     'cipher' => 'AES-256-CBC',
 
     'spam_keyword'=>1,
-    'pagination_limit'=>1,
+    'pagination_limit'=>5,
 
     /*
     |--------------------------------------------------------------------------

@@ -12,7 +12,8 @@ class Url extends Model
     protected $fillable = [
         'status',
         'task_id',
-        'url'
+        'url',
+        'reason'
     ];
 
 }

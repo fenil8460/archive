@@ -46,6 +46,7 @@ class CreateDomain implements ShouldQueue
         $url = Url::where('task_id', $task_id)->get();
 
         $status = 4; //not spam
+        $reason = null; //not spam
         $count = 0;
         if (count($url) >= 0) {
             foreach ($url as  $item) {
@@ -61,15 +62,32 @@ class CreateDomain implements ShouldQueue
                 // check minimum matching count
                 if ($count > config('app.spam_keyword')) {
                     $status = 3; // spam
+                    $reason = 'Bad-keyword match more than '.$count;
+                }elseif($this->isJapanese($html)){
+                    $status = 3; // spam
+                    $reason = 'Japanese keyword Detected';
+                }elseif($this->isChinese($html)){
+                    $status = 3; // spam
+                    $reason = 'Chinese keyword Detected';
                 }
-               
                 // update the status is spam or not
-                Url::where('task_id', $task_id)->where('id',$item->id)->update(['status'=> $status]);
+                Url::where('task_id', $task_id)->where('id',$item->id)->update(['status'=> $status,'reason'=>$reason]);
                 $count = 0;
                 $status = 4;
+                $reason = null;
             }
         }
     }
+
+
+    public function isJapanese($lang) {
+        return preg_match('/[\x{4E00}-\x{9FBF}\x{3040}-\x{309F}\x{30A0}-\x{30FF}]/u', $lang);
+    }
+
+    public function isChinese($lang) {
+        return preg_match('/[\x{4e00}-\x{9fa5}]/u', $lang);
+    }
+
 
     public function file_get_contents_curl($url)
     {

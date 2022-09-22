@@ -6,6 +6,7 @@ use App\Jobs\CreateDomain;
 use App\Models\Keyword;
 use App\Models\Task;
 use App\Models\Url;
+use App\Rules\domain;
 use DOMDocument;
 use Exception;
 use Illuminate\Http\Request;
@@ -35,7 +36,7 @@ class CheckDomainController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'url' => ['required', 'regex:/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i'],
+            'url' => [new domain],
         ]);
 
         $data = [
@@ -45,8 +46,7 @@ class CheckDomainController extends Controller
 
         // create new task
         $create_task = Task::create($data);
-        $url = explode(',', $request->url);
-
+        $url = preg_split('/\r\n|[\r\n]/', $request->url);
         foreach ($url as $item) {
             $insert_url = preg_replace('/\s+/', ' ', ltrim($item));
             $insert_data = [

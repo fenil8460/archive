@@ -18,6 +18,7 @@
                             <th>Name</th>
                             <th>Url</th>
                             <th>Status</th>
+                            <th>Reason</th>
                             <th>Action</th>
                         <tr>
                         </thead>
@@ -27,6 +28,7 @@
                             <td>{{$task->name}}</td>
                             <td>{{$task->url}}</td>
                             <td>{{$task->status_name}}</td>
+                            <td>{{$task->reason == null ? '--' : $task->reason}}</td>
                             <td><a href="/url-spanshot?url={{$task->url}}" class="btn btn-primary">SpanShot</a></td>
                         <tr>
                             @endforeach

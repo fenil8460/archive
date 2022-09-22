@@ -18,6 +18,7 @@ class CreateUrlsTable extends Migration
             $table->integer('task_id');
             $table->string('url')->nullable();
             $table->boolean('status');
+            $table->string('reason')->nullable();
             $table->timestamps();
         });
     }
