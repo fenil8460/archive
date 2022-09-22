@@ -36,7 +36,7 @@ class domain implements Rule
                 return false;
             }
         }
-        return $this->is_valid_domain_name($item) === true;
+        return true;
     }
 
     /**
