@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\CreateDomain;
+use App\Jobs\ImportData;
 use App\Models\Keyword;
 use App\Models\Task;
 use App\Models\Url;
@@ -12,6 +13,11 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use App\Imports\UrlsImport;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xls;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class CheckDomainController extends Controller
 {
@@ -31,6 +37,116 @@ class CheckDomainController extends Controller
 
         return $data;
     }
+
+    public function import(Request $request)
+    {
+
+        $request->validate([
+            'task_id' => 'required',
+            'file' => 'required',
+        ]);
+
+        $the_file = $request->file('file');
+        $spreadsheet = IOFactory::load($the_file->getRealPath());
+        $sheet        = $spreadsheet->getActiveSheet();
+        $row_limit    = $sheet->getHighestDataRow();
+        $column_limit = $sheet->getHighestDataColumn();
+        $row_range    = range(2, $row_limit);
+        $column_range = range('F', $column_limit);
+        $startcount = 2;
+        $data = array();
+        foreach ($row_range as $row) {
+            // $data[] = [
+            //     'url' => $sheet->getCell( 'B' . $row )->getValue(),
+            //     'task_id'=>$request->task_id
+            // ];
+            $data['url'][] = $sheet->getCell('B' . $row)->getValue();
+            $startcount++;
+        }
+        $data['task_id'] = $request->task_id;
+        dispatch(new ImportData($data));
+
+        return redirect()->back()->with('message', "URL's imported successfully!");;
+    }
+
+
+    
+   public function ExportExcel($url_data){
+    ini_set('max_execution_time', 0);
+    ini_set('memory_limit', '4000M');
+    try {
+        $spreadSheet = new Spreadsheet();
+        $spreadSheet->getActiveSheet()->getDefaultColumnDimension()->setWidth(20);
+        $spreadSheet->getActiveSheet()->fromArray($url_data);
+        $Excel_writer = new Xls($spreadSheet);
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="urls.xls"');
+        header('Cache-Control: max-age=0');
+        ob_end_clean();
+        $Excel_writer->save('php://output');
+        exit();
+    } catch (Exception $e) {
+        return;
+    }
+}
+
+
+ /**
+    *This function loads the customer data from the database then converts it
+    * into an Array that will be exported to Excel
+    */
+    function exportData($id, $status){
+        $url = Url::where('task_id', $id);
+
+        if ($status == 'active') {
+            $url->where('status', 4);
+        } else {
+            $url->where('status', '!=', 4);
+        }
+        $url = $url->get();
+        $data_array [] = array("Id","Task Id","URL","Status","Reason","Created At","Updated At");
+        foreach($url as $key=>$data_item)
+        {
+            $data_array[] = array(
+                'Id' =>$data_item->id,
+                'Task Id' => $data_item->task_id,
+                'URL' => $data_item->url,
+                'Status' => $data_item->status,
+                'Reason' => $data_item->reason,
+                'Created At' =>$data_item->created_at,
+                'Updated At' =>$data_item->updated_at
+            );
+        }
+        $this->ExportExcel($data_array);
+    }
+
+    // public function ExportExcel($id, $status)
+    // {
+    //     $url = Url::where('task_id', $id);
+
+    //     if ($status == 'active') {
+    //         $url->where('status', 4);
+    //     } else {
+    //         $url->where('status', '!=', 4);
+    //     }
+    //     $url = $url->get();
+    //     ini_set('max_execution_time', 0);
+    //     ini_set('memory_limit', '4000M');
+    //     try {
+    //         $spreadSheet = new Spreadsheet();
+    //         $spreadSheet->getActiveSheet()->getDefaultColumnDimension()->setWidth(20);
+    //         $spreadSheet->getActiveSheet()->fromArray($url);
+    //         $Excel_writer = new Xls($spreadSheet);
+    //         header('Content-Type: application/vnd.ms-excel');
+    //         header('Content-Disposition: attachment;filename="Urls.xls"');
+    //         header('Cache-Control: max-age=0');
+    //         ob_end_clean();
+    //         $Excel_writer->save('php://output');
+    //         exit();
+    //     } catch (Exception $e) {
+    //         return $e;
+    //     }
+    // }
 
     public function createTask(Request $request)
     {
@@ -70,24 +186,35 @@ class CheckDomainController extends Controller
 
     public function listTask(Request $request)
     {
-        $task = Url::join('tasks', 'tasks.id', '=', 'urls.task_id')->select('urls.*', 'tasks.name')->where('user_id',Auth::user()->id)->paginate(config('app.pagination_limit'));
-        foreach($task as $key=>$item){
-            $status = '';
-            if($item->status == 1){
-                $status = 'Waiting for proccesing';
-            }
-            if($item->status == 2){
-                $status = 'Underproccess';
-            }
-            if($item->status == 3){
-                $status = 'Spam';
-            }
-            if($item->status == 4){
-                $status = 'Not spam';
-            }
-            $task[$key]['status_name'] = $status;
+        $task = Task::where('user_id', Auth::user()->id)->paginate(config('app.pagination_limit'));
+        foreach ($task as $key => $item) {
+            $url = Url::where('task_id', $item->id)->count();
+            $task[$key]['count'] = $url;
         }
         return view('task.list', ['tasks' => $task]);
+    }
+
+    public function listUrl($id)
+    {
+        $url_active = Url::where('task_id', $id)->where('status', 4)->paginate(config('app.pagination_limit'));
+        $url_spam = Url::where('task_id', $id)->where('status', '!=', 4)->paginate(config('app.pagination_limit'));
+        foreach ($url_spam as $key => $item) {
+            $status = '';
+            if ($item->status == 1) {
+                $status = 'Waiting for proccesing';
+            }
+            if ($item->status == 2) {
+                $status = 'Underproccess';
+            }
+            if ($item->status == 3) {
+                $status = 'Spam';
+            }
+            if ($item->status == 4) {
+                $status = 'Ok';
+            }
+            $url_spam[$key]['status_name'] = $status;
+        }
+        return view('url.list', ['url_actives' => $url_active, 'url_spams' => $url_spam, 'task_id' => $id]);
     }
 
     public function getSnapShot(Request $request)
@@ -104,6 +231,7 @@ class CheckDomainController extends Controller
         }
         return view('snapshot.list', ['snapshots' => $data]);
     }
+
 
     public function badKeyword()
     {

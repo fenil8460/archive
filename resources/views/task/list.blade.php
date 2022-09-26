@@ -16,20 +16,16 @@
                         <thead>
                         <tr>
                             <th>Name</th>
-                            <th>Url</th>
-                            <th>Status</th>
-                            <th>Reason</th>
-                            <th>Action</th>
+                            <th>Total domains</th>
+                            <th>Created At</th>
                         <tr>
                         </thead>
                         <tbody>
                         @foreach($tasks as $task)
                         <tr>
-                            <td>{{$task->name}}</td>
-                            <td>{{$task->url}}</td>
-                            <td>{{$task->status_name}}</td>
-                            <td>{{$task->reason == null ? '--' : $task->reason}}</td>
-                            <td><a href="/url-spanshot?url={{$task->url}}" class="btn btn-primary">SpanShot</a></td>
+                            <td><a href="/list-url/{{$task->id}}">{{$task->name}}</a></td>
+                            <td>{{$task->count}}</td>
+                            <td>{{$task->created_at}}</td>
                         <tr>
                             @endforeach
                         </tbody>

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CheckDomainController;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,5 +28,14 @@ Route::middleware(['auth'])->group(function () {
     })->name('task');
     Route::post('/create-task', [CheckDomainController::class, 'createTask'])->name('createTask');
     Route::get('/list-task', [CheckDomainController::class, 'listTask'])->name('listTask');
+    Route::get('/list-url/{id}', [CheckDomainController::class, 'listUrl'])->name('listUrl');
     Route::get('/url-spanshot', [CheckDomainController::class, 'getSnapShot'])->name('snapshot');
+    Route::post('/import', [
+        CheckDomainController::class,
+        'import'
+    ])->name('import');
+    Route::get('/export/{id}/{status}', [
+        CheckDomainController::class,
+        'exportData'
+    ]);
 });
