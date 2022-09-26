@@ -22,8 +22,12 @@
     }
 
     a.btn.btn-success.export-data {
-    margin-bottom: 16px;
-}
+        margin-bottom: 16px;
+    }
+
+    a.btn.btn-success.sample-data {
+        margin-right: 10px;
+    }
 </style>
 <div class="container">
     @if ($errors->any())
@@ -55,8 +59,8 @@
                         <button type="submit" class="btn btn-success">
                             Import
                         </button>
-
                     </form>
+                    <a href="{{url('sample-export')}}" class="btn btn-success sample-data">Sample File</a>
                     <a href="/list-task" class="btn btn-primary list-task">View Task</a>
                 </div>
 
@@ -72,13 +76,13 @@
                 <div class="tab-content" id="myTabContent">
                     <div class="tab-pane fade  show active" id="active" role="tabpanel" aria-labelledby="active-tab">
                         <div class="card-body">
+                            {{$task_name->name}}
                             <a href="{{url('export')}}/{{$task_id}}/active" class="btn btn-success export-data" style="margin-left:85%">Export</a>
                             <table class="table">
                                 <thead>
                                     <tr>
                                         <th>URL</th>
                                         <th>Status</th>
-                                        <th>Reason</th>
                                         <th>Action</th>
                                     <tr>
                                 </thead>
@@ -87,8 +91,7 @@
                                     <tr>
                                         <td>{{$url->url}}</td>
                                         <td>Ok</td>
-                                        <td>{{$url->reason == null ? '--' : $url->reason}}</td>
-                                        <td><a href="/url-spanshot?url={{$url->url}}" class="btn btn-primary">SpanShot</a></td>
+                                        <td><a href="/url-spanshot?url={{$url->url}}" class="btn btn-primary">SnapShot</a></td>
                                     <tr>
                                         @endforeach
                                 </tbody>
@@ -99,6 +102,7 @@
                     </div>
                     <div class="tab-pane fade" id="spam" role="tabpanel" aria-labelledby="spam-tab">
                         <div class="card-body">
+                            {{$task_name->name}}
                             <a href="{{url('export')}}/{{$task_id}}/spam" class="btn btn-success export-data" style="margin-left:85%">Export</a>
                             <table class="table">
                                 <thead>

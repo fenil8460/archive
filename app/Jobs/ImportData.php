@@ -64,7 +64,11 @@ class ImportData implements ShouldQueue
                     $reason = 'Chinese keyword Detected';
                 }
                 // update the status is spam or not
-                Url::create(['url'=>$item,'status' => $status, 'reason' => $reason,'task_id'=> $task_id]);
+                $regex = '/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/';
+                $regex2 = '/^(?!:\/\/)(?=.{1,255}$)((.{1,63}\.){1,127}(?![0-9]*$)[a-z0-9-]+\.?)$/i';
+                if (preg_match($regex, $item) != false && preg_match($regex2, $item) != false) {
+                    Url::create(['url' => $item, 'status' => $status, 'reason' => $reason, 'task_id' => $task_id]);
+                }
                 $count = 0;
                 $status = 4;
                 $reason = null;

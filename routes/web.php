@@ -38,4 +38,8 @@ Route::middleware(['auth'])->group(function () {
         CheckDomainController::class,
         'exportData'
     ]);
+    Route::get('/sample-export', [
+        CheckDomainController::class,
+        'sampleExportData'
+    ]);
 });

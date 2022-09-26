@@ -25,13 +25,13 @@ class domain implements Rule
      */
     public function passes($attribute, $value)
     {
-
+        if($value == null){
+            return true;
+        }
         $url = preg_split('/\r\n|[\r\n]/', $value);
         foreach ($url as $item) {
             $regex = '/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/';
             $regex2 = '/^(?!:\/\/)(?=.{1,255}$)((.{1,63}\.){1,127}(?![0-9]*$)[a-z0-9-]+\.?)$/i';
-            echo preg_match($regex, $item);
-            echo preg_match($regex2, $item);
             if (preg_match($regex, $item) == false && preg_match($regex2, $item) == false) {
                 return false;
             }

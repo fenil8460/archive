@@ -35,7 +35,7 @@
 
                             <div class="col-md-6">
                                 <!-- <input id="url" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password"> -->
-                                <textarea id="url" rows=5 class="form-control @error('url') is-invalid @enderror" name="url" required autocomplete="url">{{ old('url') }}</textarea>
+                                <textarea id="url" rows=5 class="form-control @error('url') is-invalid @enderror" name="url" autocomplete="url">{{ old('url') }}</textarea>
                                 @error('url')
                                 <span class="invalid-feedback" role="alert">
                                     <strong>{{ $message }}</strong>

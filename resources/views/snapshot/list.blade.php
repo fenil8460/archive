@@ -10,7 +10,7 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header">{{ __('SnapShot') }}<a href="/list-task" class="btn btn-primary list-task">View URLs</a></div>
+                <div class="card-header">{{ __('SnapShot') }}<a href="{{ URL::previous() }}" class="btn btn-primary list-task">View URLs</a></div>
                 <div class="card-body">
                     <table class="table">
                         <thead>
