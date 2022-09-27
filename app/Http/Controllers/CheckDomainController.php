@@ -53,13 +53,24 @@ class CheckDomainController extends Controller
         $column_range = range('F', $column_limit);
         $startcount = 2;
         $data = array();
+        $insert_data = [];
         // dd($row_range);
         foreach ($row_range as $row) {
             // $data[] = [
             //     'url' => $sheet->getCell( 'B' . $row )->getValue(),
             //     'task_id'=>$request->task_id
             // ];
-            $data['url'][] = $sheet->getCell('B' . $row)->getValue();
+            // $insert_data[$key] = $sheet->getCell('B' . $row)->getValue();
+            // dd($sheet->getCell( 'A' . $row )->getValue());
+            $insert_data = [
+                'url' => $sheet->getCell( 'A' . $row )->getValue(),
+                'task_id'=>$request->task_id,
+                'status'=>1
+            ];
+            // dd($insert_data);
+
+            // create new url based on task
+            Url::create($insert_data);
             $startcount++;
         }
         $data['task_id'] = $request->task_id;
@@ -133,9 +144,9 @@ class CheckDomainController extends Controller
 
     function sampleExportData()
     {
-        $data_array[] = array("id", "url");
-        $data_array[] = array("1", "https://www.alwaysinfotech.com/");
-        $data_array[] = array("2", "alwaysinfotech.com");
+        $data_array[] = array("url");
+        $data_array[] = array("https://www.alwaysinfotech.com/");
+        $data_array[] = array("alwaysinfotech.com");
         $this->ExportExcel($data_array);
     }
 
@@ -189,8 +200,9 @@ class CheckDomainController extends Controller
 
     public function listUrl($id)
     {
+        $url_proccess = Url::where('task_id', $id)->where('status', 1)->orWhere('status',2)->paginate(config('app.pagination_limit'));
         $url_active = Url::where('task_id', $id)->where('status', 4)->paginate(config('app.pagination_limit'));
-        $url_spam = Url::where('task_id', $id)->where('status', '!=', 4)->paginate(config('app.pagination_limit'));
+        $url_spam = Url::where('task_id', $id)->where('status', '=', 3)->paginate(config('app.pagination_limit'));
         $name = Task::select('name')->where('id', $id)->first();
         foreach ($url_spam as $key => $item) {
             $status = '';
@@ -208,7 +220,7 @@ class CheckDomainController extends Controller
             }
             $url_spam[$key]['status_name'] = $status;
         }
-        return view('url.list', ['url_actives' => $url_active, 'task_name' => $name, 'url_spams' => $url_spam, 'task_id' => $id]);
+        return view('url.list', ['url_actives' => $url_active, 'task_name' => $name, 'url_proccess' => $url_proccess, 'url_spams' => $url_spam, 'task_id' => $id]);
     }
 
     public function getSnapShot(Request $request)

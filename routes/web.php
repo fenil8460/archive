@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CheckDomainController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -42,4 +43,9 @@ Route::middleware(['auth'])->group(function () {
         CheckDomainController::class,
         'sampleExportData'
     ]);
+    Route::get('/update-password', function () {
+        return view('user.changePassword');
+    })->name('viewUpdatePassword');
+    Route::post('/change-password', [UserController::class, 'updatePassword'])->name('updatePassword');
+
 });

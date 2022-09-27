@@ -34,24 +34,70 @@ class ImportData implements ShouldQueue
      */
     public function handle()
     {
+        // //get keyword
+        // $keywords = Keyword::get();
+        // $task_id = $this->data['task_id'];
+
+        // $url = $this->data['url'];
+
+        // $status = 4; //not spam
+        // $reason = null; //not spam
+        // $count = 0;
+        // if (count($url) >= 0) {
+        //     foreach ($url as  $item) {
+        //         $html = $this->file_get_contents_curl($item);
+        //         //check keyword is exists or not
+        //         foreach ($keywords as $item2) {
+        //             if (str_contains($html, $item2->keyword)) {
+        //                 $count = $count + 1;
+        //             }
+        //         }
+        //         // check minimum matching count
+        //         if ($count > config('app.spam_keyword')) {
+        //             $status = 3; // spam
+        //             $reason = 'Bad-keyword match more than ' . $count;
+        //         } elseif ($this->isJapanese($html)) {
+        //             $status = 3; // spam
+        //             $reason = 'Japanese keyword Detected';
+        //         } elseif ($this->isChinese($html)) {
+        //             $status = 3; // spam
+        //             $reason = 'Chinese keyword Detected';
+        //         }
+        //         // update the status is spam or not
+        //         $regex = '/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/';
+        //         $regex2 = '/^(?!:\/\/)(?=.{1,255}$)((.{1,63}\.){1,127}(?![0-9]*$)[a-z0-9-]+\.?)$/i';
+        //         if (preg_match($regex, $item) != false && preg_match($regex2, $item) != false) {
+        //             Url::create(['url' => $item, 'status' => $status, 'reason' => $reason, 'task_id' => $task_id]);
+        //         }
+        //         $count = 0;
+        //         $status = 4;
+        //         $reason = null;
+        //     }
+        // }
+
         //get keyword
         $keywords = Keyword::get();
         $task_id = $this->data['task_id'];
 
-        $url = $this->data['url'];
+        // update url status
+        Url::where('task_id', $task_id)->where('status',1)->update(['status' => 2]);
+
+        $url = Url::where('task_id', $task_id)->where('status',2)->get();
 
         $status = 4; //not spam
         $reason = null; //not spam
         $count = 0;
         if (count($url) >= 0) {
             foreach ($url as  $item) {
-                $html = $this->file_get_contents_curl($item);
+
+                $html = $this->file_get_contents_curl($item->url);
                 //check keyword is exists or not
                 foreach ($keywords as $item2) {
                     if (str_contains($html, $item2->keyword)) {
                         $count = $count + 1;
                     }
                 }
+
                 // check minimum matching count
                 if ($count > config('app.spam_keyword')) {
                     $status = 3; // spam
@@ -64,11 +110,7 @@ class ImportData implements ShouldQueue
                     $reason = 'Chinese keyword Detected';
                 }
                 // update the status is spam or not
-                $regex = '/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/';
-                $regex2 = '/^(?!:\/\/)(?=.{1,255}$)((.{1,63}\.){1,127}(?![0-9]*$)[a-z0-9-]+\.?)$/i';
-                if (preg_match($regex, $item) != false && preg_match($regex2, $item) != false) {
-                    Url::create(['url' => $item, 'status' => $status, 'reason' => $reason, 'task_id' => $task_id]);
-                }
+                Url::where('task_id', $task_id)->where('id', $item->id)->update(['status' => $status, 'reason' => $reason]);
                 $count = 0;
                 $status = 4;
                 $reason = null;

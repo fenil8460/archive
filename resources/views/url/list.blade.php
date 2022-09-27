@@ -8,8 +8,8 @@
 
     .import-form {
         display: flex;
-        margin-left: 150px;
-        width: 60%;
+        margin-left: 76px;
+        width: 53%;
     }
 
     .url_list {
@@ -49,7 +49,7 @@
             <div class="card">
                 <div class="card-header url_list">
                     <span>
-                        {{ __('URls') }}
+                        {{ __('List Name') }}
                     </span>
                     <form action="{{ route('import') }}" class="import-form" method="POST" enctype="multipart/form-data">
                         @csrf
@@ -61,7 +61,7 @@
                         </button>
                     </form>
                     <a href="{{url('sample-export')}}" class="btn btn-success sample-data">Sample File</a>
-                    <a href="/list-task" class="btn btn-primary list-task">View Task</a>
+                    <a href="/list-task" class="btn btn-primary list-task">View Task List</a>
                 </div>
 
 
@@ -71,6 +71,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="spam-tab" data-toggle="tab" href="#spam" role="tab" aria-controls="spam" aria-selected="false">Spam</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="processing-tab" data-toggle="tab" href="#processing" role="tab" aria-controls="processing" aria-selected="false">Pending domains</a>
                     </li>
                 </ul>
                 <div class="tab-content" id="myTabContent">
@@ -119,6 +122,32 @@
                                         <td>{{$url->url}}</td>
                                         <td>{{$url->status_name}}</td>
                                         <td>{{$url->reason == null ? '--' : $url->reason}}</td>
+                                        <td><a href="/url-spanshot?url={{$url->url}}" class="btn btn-primary">SpanShot</a></td>
+                                    <tr>
+                                        @endforeach
+                                </tbody>
+
+                            </table>
+                            {{ $url_spams->links() }}
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="processing" role="tabpanel" aria-labelledby="processing-tab">
+                        <div class="card-body">
+                            {{$task_name->name}}
+                            <!-- <a href="{{url('export')}}/{{$task_id}}/spam" class="btn btn-success export-data" style="margin-left:85%">Export</a> -->
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>URL</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    <tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($url_proccess as $url)
+                                    <tr>
+                                        <td>{{$url->url}}</td>
+                                        <td>under-process</td>
                                         <td><a href="/url-spanshot?url={{$url->url}}" class="btn btn-primary">SpanShot</a></td>
                                     <tr>
                                         @endforeach

@@ -30,11 +30,10 @@
                             </div>
                         </div>
 
-                        <div class="row mb-3">
+                        <!-- <div class="row mb-3">
                             <label for="url" class="col-md-4 col-form-label text-md-end">{{ __('URL') }}</label>
 
                             <div class="col-md-6">
-                                <!-- <input id="url" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password"> -->
                                 <textarea id="url" rows=5 class="form-control @error('url') is-invalid @enderror" name="url" autocomplete="url">{{ old('url') }}</textarea>
                                 @error('url')
                                 <span class="invalid-feedback" role="alert">
@@ -42,7 +41,7 @@
                                 </span>
                                 @enderror
                             </div>
-                        </div>
+                        </div> -->
 
 
                         <div class="row mb-0">
