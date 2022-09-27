@@ -47,5 +47,7 @@ Route::middleware(['auth'])->group(function () {
         return view('user.changePassword');
     })->name('viewUpdatePassword');
     Route::post('/change-password', [UserController::class, 'updatePassword'])->name('updatePassword');
+    Route::get('/regenrate-spanshot', [CheckDomainController::class, 'regenrateSnapShot'])->name('regenrate');
 
+    
 });

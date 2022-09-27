@@ -16,13 +16,17 @@
                         <thead>
                             <tr>
                                 <th>Url</th>
+                                <th>Status</th>
+                                <th>Reason</th>
                                 <th>Date</th>
                             <tr>
                         </thead>
                         <tbody>
                         @foreach($snapshots as $snapshot)
                         <tr>
-                            <td><a href="{{$snapshot['url']}}" target="_blank">{{$snapshot['url']}}</a></td>
+                            <td><a href="{{$snapshot['snapshot']}}" target="_blank">{{$snapshot['snapshot']}}</a></td>
+                            <td>{{$snapshot['status_name']}}</td>
+                            <td>{{$snapshot['reason'] == null ? '--' : $snapshot['reason']}}</td>
                             <td>{{date('Y-m-d H:i:s', strtotime($snapshot['timestamp']))}}</td>
                         <tr>
                             @endforeach

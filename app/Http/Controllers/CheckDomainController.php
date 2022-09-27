@@ -14,6 +14,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use App\Imports\UrlsImport;
+use App\Jobs\CheckSnapShot;
+use App\Jobs\CreateSnapShot;
+use App\Models\Snapshot;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xls;
@@ -63,9 +66,9 @@ class CheckDomainController extends Controller
             // $insert_data[$key] = $sheet->getCell('B' . $row)->getValue();
             // dd($sheet->getCell( 'A' . $row )->getValue());
             $insert_data = [
-                'url' => $sheet->getCell( 'A' . $row )->getValue(),
-                'task_id'=>$request->task_id,
-                'status'=>1
+                'url' => $sheet->getCell('A' . $row)->getValue(),
+                'task_id' => $request->task_id,
+                'status' => 1
             ];
             // dd($insert_data);
 
@@ -200,7 +203,7 @@ class CheckDomainController extends Controller
 
     public function listUrl($id)
     {
-        $url_proccess = Url::where('task_id', $id)->where('status', 1)->orWhere('status',2)->paginate(config('app.pagination_limit'));
+        $url_proccess = Url::where('task_id', $id)->where('status','!=', 4)->where('status','!=',3)->paginate(config('app.pagination_limit'));
         $url_active = Url::where('task_id', $id)->where('status', 4)->paginate(config('app.pagination_limit'));
         $url_spam = Url::where('task_id', $id)->where('status', '=', 3)->paginate(config('app.pagination_limit'));
         $name = Task::select('name')->where('id', $id)->first();
@@ -225,19 +228,91 @@ class CheckDomainController extends Controller
 
     public function getSnapShot(Request $request)
     {
-        $snapshot =  Http::get('http://web.archive.org/cdx/search/cdx?output=json&url=' . $request->url);
-        $snapshot = json_decode($snapshot);
-        unset($snapshot[0]);
-        $data = [];
-        foreach ($snapshot as $index => $item) {
-            $data[$index] = [
-                'url' => 'http://web.archive.org/web/' . $item[1] . '/' . $item[2],
-                'timestamp' => $item[1]
+        $get_snapshot = Snapshot::where('url_id', $request->id)->count();
+
+        if ($get_snapshot == 0) {
+            $snapshot =  Http::get('http://web.archive.org/cdx/search/cdx?output=json&url=' . $request->url);
+            $snapshot = json_decode($snapshot);
+            $insert_data = [];
+            unset($snapshot[0]);
+            foreach ($snapshot as $index => $item) {
+                $insert_data[$index] = [
+                    'snapshot' => 'http://web.archive.org/web/' . $item[1] . '/' . $item[2],
+                    'url_id' => $request->id,
+                    'status' => 1,
+                    'status_name' => 'Processing',
+                    'reason' => null,
+                    'timestamp' => $item[1],
+                ];
+            }
+            // Snapshot::insert($insert_data);
+            $snapshot_data = [
+                'url_id' => $request->id,
+                'insert_data' => $insert_data
             ];
+
+            // dispatch(new CheckSnapShot($snapshot_data));
+            dispatch(new CreateSnapShot($snapshot_data));
+
+            return view('snapshot.list', ['snapshots' => $insert_data]);
         }
+        $data = Snapshot::where('url_id', $request->id)->get();
+        foreach ($data as $key => $item) {
+            $status = '';
+            if ($item->status == 1) {
+                $status = 'Waiting for proccesing';
+            }
+            if ($item->status == 2) {
+                $status = 'Underproccess';
+            }
+            if ($item->status == 3) {
+                $status = 'Spam';
+            }
+            if ($item->status == 4) {
+                $status = 'Ok';
+            }
+            $data[$key]['status_name'] = $status;
+        }
+
+
+
         return view('snapshot.list', ['snapshots' => $data]);
     }
 
+
+    public function regenrateSnapShot(Request $request)
+    {
+        $snapshot =  Http::get('http://web.archive.org/cdx/search/cdx?output=json&url=' . $request->url);
+        $snapshot = json_decode($snapshot);
+        unset($snapshot[0]);
+        $insert_data = [];
+        foreach ($snapshot as $index => $item) {
+
+            $insert_data[$index] = [
+                'snapshot' => 'http://web.archive.org/web/' . $item[1] . '/' . $item[2],
+                'url_id' => $request->id,
+                'status' => 2,
+                'status_name' => 'Ok',
+                'reason' => null,
+                'timestamp' => $item[1],
+            ];
+
+            // $available_count = Snapshot::where('snapshot', '=', $insert_data['snapshot'])->where('url_id', '=', $request->id)->count();
+            // if ($available_count == 0) {
+            //     Snapshot::create($insert_data);
+            // }
+        }
+
+        $snapshot_data = [
+            'url_id' => $request->id,
+            'insert_data' => $insert_data
+        ];
+
+        dispatch(new CheckSnapShot($snapshot_data));            
+
+        $url = '/url-spanshot?url=' . $request->url . '.&id=' . $request->id;
+        return redirect($url);
+    }
 
     public function badKeyword()
     {

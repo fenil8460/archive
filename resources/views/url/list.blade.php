@@ -94,7 +94,9 @@
                                     <tr>
                                         <td>{{$url->url}}</td>
                                         <td>Ok</td>
-                                        <td><a href="/url-spanshot?url={{$url->url}}" class="btn btn-primary">SnapShot</a></td>
+                                        <td><a href="/url-spanshot?url={{$url->url}}&id={{$url->id}}" class="btn btn-primary">SnapShot</a>
+                                    
+                                        <a href="/regenrate-spanshot?url={{$url->url}}&id={{$url->id}}" class="btn btn-primary">Regenerate</a></td>
                                     <tr>
                                         @endforeach
                                 </tbody>
@@ -122,7 +124,7 @@
                                         <td>{{$url->url}}</td>
                                         <td>{{$url->status_name}}</td>
                                         <td>{{$url->reason == null ? '--' : $url->reason}}</td>
-                                        <td><a href="/url-spanshot?url={{$url->url}}" class="btn btn-primary">SpanShot</a></td>
+                                        <td><a href="/url-spanshot?url={{$url->url}}&id={{$url->id}}" class="btn btn-primary">SpanShot</a></td>
                                     <tr>
                                         @endforeach
                                 </tbody>
@@ -148,7 +150,7 @@
                                     <tr>
                                         <td>{{$url->url}}</td>
                                         <td>under-process</td>
-                                        <td><a href="/url-spanshot?url={{$url->url}}" class="btn btn-primary">SpanShot</a></td>
+                                        <td><a href="/url-spanshot?url={{$url->url}}&id={{$url->id}}" class="btn btn-primary">SpanShot</a></td>
                                     <tr>
                                         @endforeach
                                 </tbody>
